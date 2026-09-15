@@ -24,7 +24,8 @@ font_small = pygame.font.SysFont(None, 40)
 score = 0
 round_number = 1
 game_over = False
-invulnerable_timer = 0 # brief invincibility after losing a life
+invulnerable_timer = 0      # brief invincibility after losing a life
+invincibility_time = 1      # in seconds
 #endregion
 
 # player
@@ -46,10 +47,12 @@ bullets = []
 #endregion
 
 # enemy bullets
+#region
 enemy_bullet_radius = 5
 enemy_bullet_speed = 7
 enemy_bullets = []
-enemy_shoot_chance = 0.003 # per enemy, per frame
+enemy_shoot_chance = 0.003  # per enemy, per frame
+#endregion
 
 # enemies
 #region
@@ -87,14 +90,16 @@ def reset_after_hit():
     player_x = player_start_x
     bullets = []
     enemy_bullets = []
-    invulnerable_timer = FPS * 1    # 1 second
+    invulnerable_timer = FPS * invincibility_time
 
 def start_new_round():
     global enemies, enemies_speed_x, enemy_direction, round_number, bullets, enemy_bullets
     round_number += 1
     enemies = make_enemy_grid()
     enemy_speed_x = enemy_base_speed + (round_number - 1) * 0.5
-    enemy_direction = 1
+    enemy_direction = random.randint(-1, 1)
+    if enemy_direction == 0:
+        enemy_direction = 1
     bullets = []
     enemy_bullets = []
 
@@ -105,7 +110,7 @@ def full_reset():
     player_lives = 3
     bullets = []
     enemy_bullets = []
-    enemies = make_enemy_grid
+    enemies = make_enemy_grid()
     enemy_direction = 1
     score = 0
     round_number = 1
@@ -196,8 +201,8 @@ while running:
                 distance = (dx ** 2 + dy ** 2) ** 0.5
                 if distance < enemy_bullet_radius + player_radius:
                     enemy_bullets.remove(ebullet)
-                    plaer_lives -= 1
-                    if player_lives <= 1:
+                    player_lives -= 1
+                    if player_lives <= 0:
                         game_over = True
                     else:
                         reset_after_hit()
@@ -214,6 +219,8 @@ while running:
 
         # round clear -> next round
         if len(enemies) == 0 and not game_over:
+            enemy_rows = random.randint(3, 5)
+            enemy_columns = random.randint(2, 4)
             start_new_round()
 
         # draw player (flicker while invulnerable)
@@ -227,11 +234,11 @@ while running:
         final_surface = font_small.render(
             f"Final Score: {score}   Reached Round: {round_number}", True, (255, 255, 255)
         )
-        final_rect = final_surface.get_rect(center=(SCREEN_WDITH // 2, SCREEN_HEIGHT // 2))
+        final_rect = final_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         screen.blit(final_surface, final_rect)
 
         if keys[pygame.K_r]:
-            full_reset
+            full_reset()
     
     # HUD
     score_surface = font_small.render(f"Score: {score}", True, (255, 255, 255))
