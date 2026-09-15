@@ -24,6 +24,7 @@ font_small = pygame.font.SysFont(None, 40)
 score = 0
 round_number = 1
 game_over = False
+game_started = False
 invulnerable_timer = 0      # brief invincibility after losing a life
 invincibility_time = 1      # in seconds
 #endregion
@@ -93,7 +94,7 @@ def reset_after_hit():
     invulnerable_timer = FPS * invincibility_time
 
 def start_new_round():
-    global enemies, enemies_speed_x, enemy_direction, round_number, bullets, enemy_bullets
+    global enemies, enemy_speed_x, enemy_direction, round_number, bullets, enemy_bullets
     round_number += 1
     enemies = make_enemy_grid()
     enemy_speed_x = enemy_base_speed + (round_number - 1) * 0.5
@@ -125,7 +126,21 @@ while running:
     screen.fill((0, 0, 0))
     keys = pygame.key.get_pressed()
 
-    if not game_over:
+    if game_started == False:
+        title_text_surface = font_large.render("SPACE INVADERS", True, (100, 100, 200))
+        title_text_rect = title_text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60))
+        screen.blit(title_text_surface, title_text_rect)
+
+        start_text_surface = font_small.render("PRESS 'SPACE' TO START", True, (255, 255, 255))
+        start_text_rect = start_text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        screen.blit(start_text_surface, start_text_rect)
+
+        if keys[pygame.K_SPACE] and not space_was_pressed:
+            full_reset()
+            game_started = True
+        space_was_pressed = keys[pygame.K_SPACE]
+
+    if not game_over and game_started == True:
         if invulnerable_timer > 0:
             invulnerable_timer -= 1
 
@@ -226,19 +241,21 @@ while running:
         # draw player (flicker while invulnerable)
         if invulnerable_timer <= 0 or invulnerable_timer % 10 < 5:
             pygame.draw.circle(screen, (255, 50, 50), (player_x, player_y), player_radius)
-    else:
+    elif game_started == True:
         text_surface = font_large.render("GAME OVER", True, (255, 50, 50))
         text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60))
         screen.blit(text_surface, text_rect)
 
-        final_surface = font_small.render(
-            f"Final Score: {score}   Reached Round: {round_number}", True, (255, 255, 255)
-        )
+        final_surface = font_small.render(f"Final Score: {score}   Reached Round: {round_number}", True, (255, 255, 255))
         final_rect = final_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         screen.blit(final_surface, final_rect)
 
+        restart_text_surface = font_small.render("Press 'R' to Return to Main Menu", True, (0, 255, 0))
+        restart_text_rect = restart_text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60))
+        screen.blit(restart_text_surface, restart_text_rect)
+
         if keys[pygame.K_r]:
-            full_reset()
+            game_started = False
     
     # HUD
     score_surface = font_small.render(f"Score: {score}", True, (255, 255, 255))
