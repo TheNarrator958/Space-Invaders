@@ -60,7 +60,7 @@ def make_barriers():
     barriers = []
     total_width = SCREEN_WIDTH
     spacing = total_width // (barrier_count + 1)
-    barrier_y = player_start_y - 140
+    barrier_y = player_start_y - 100
 
     for i in range(barrier_count):
         center_x = spacing * (i + 1)
@@ -88,7 +88,7 @@ barriers = make_barriers()
 enemy_bullet_radius = 5
 enemy_bullet_speed = 7
 enemy_bullets = []
-enemy_shoot_chance = 0.003  # per enemy, per frame
+enemy_shoot_chance = 0.002  # per enemy, per frame
 #endregion
 
 # enemies
