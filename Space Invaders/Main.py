@@ -17,6 +17,7 @@ FPS = 60
 
 font_large = pygame.font.SysFont(None, 80)
 font_small = pygame.font.SysFont(None, 40)
+font_small_x = pygame.font.SysFont(None, 30)
 #endregion
 
 # game state
@@ -171,6 +172,10 @@ while running:
         start_text_rect = start_text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         screen.blit(start_text_surface, start_text_rect)
 
+        controls_text_surface = font_small_x.render("CONTROLS : 'A/D' TO MOVE | 'SPACE' TO SHOOT", True, (255, 255, 255))
+        controls_text_rect = controls_text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 120))
+        screen.blit(controls_text_surface, controls_text_rect)
+
         if keys[pygame.K_SPACE] and not space_was_pressed:
             full_reset()
             game_started = True
@@ -316,7 +321,7 @@ while running:
         final_rect = final_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         screen.blit(final_surface, final_rect)
 
-        restart_text_surface = font_small.render("Press 'R' to Return to Main Menu", True, (0, 255, 0))
+        restart_text_surface = font_small_x.render("Press 'R' to Return to Main Menu", True, (0, 255, 0))
         restart_text_rect = restart_text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60))
         screen.blit(restart_text_surface, restart_text_rect)
 
