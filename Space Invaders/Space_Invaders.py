@@ -47,6 +47,41 @@ bullet_speed = 10
 bullets = []
 #endregion
 
+# barriers
+#region
+barrier_count = 4
+barrier_block_size = 8
+barrier_columns = 8
+barrier_rows = 5
+barrier_color = (80, 180, 255)
+
+def make_barriers():
+    barriers = []
+    total_width = SCREEN_WIDTH
+    spacing = total_width // (barrier_count + 1)
+    barrier_y = player_start_y - 140
+
+    for i in range(barrier_count):
+        center_x = spacing * (i + 1)
+        start_x = center_x - (barrier_columns * barrier_block_size) // 2
+
+        for row in range(barrier_rows):
+            for col in range(barrier_columns):
+                is_bottom_notch = (row >= barrier_rows - 2 and barrier_columns // 2 - 2 <= col <= barrier_columns // 2 + 1)
+                
+                if is_bottom_notch:
+                    continue
+
+                block_x = start_x + col * barrier_block_size
+                block_y = barrier_y + row * barrier_block_size
+                rect = pygame.Rect(block_x, block_y, barrier_block_size, barrier_block_size)
+                barriers.append(rect)
+
+    return barriers
+
+barriers = make_barriers()
+#endregion
+
 # enemy bullets
 #region
 enemy_bullet_radius = 5
@@ -105,13 +140,14 @@ def start_new_round():
     enemy_bullets = []
 
 def full_reset():
-    global player_x, player_lives, bullets, enemy_bullets, enemies
+    global player_x, player_lives, bullets, enemy_bullets, enemies, barriers
     global enemy_speed_x, enemy_direction, score, round_number, game_over, invulnerable_timer
     player_x = player_start_x
     player_lives = 3
     bullets = []
     enemy_bullets = []
     enemies = make_enemy_grid()
+    barriers = make_barriers()
     enemy_direction = 1
     score = 0
     round_number = 1
@@ -158,9 +194,26 @@ while running:
             bullets.append([player_x, player_y - 20])
         space_was_pressed = keys[pygame.K_SPACE]
 
-        # move player bullets | check enemy hits
+        # draw barriers
+        for block in barriers:
+            pygame.draw.rect(screen, barrier_color, block)
+
+        # move player bullets | check barrier hits | check enemy hits
         for bullet in bullets[:]:
             bullet[1] -= bullet_speed
+
+            bullet_rect = pygame.Rect(bullet[0] - bullet_radius, bullet[1] - bullet_radius, bullet_radius * 2, bullet_radius * 2)
+            hit_barrier = False
+            for block in barriers[:]:
+                if block.colliderect(bullet_rect):
+                    barriers.remove(block)
+                    if bullet in bullets:
+                        bullets.remove(bullet)
+                    hit_barrier = True
+                    break
+                if hit_barrier:
+                    continue
+
             pygame.draw.circle(screen, (255, 255, 255), (bullet[0], bullet[1]), bullet_radius)
 
             if bullet[1] < 0:
@@ -201,9 +254,22 @@ while running:
             if enemy[1] + enemy_radius >= player_y - player_radius:
                 game_over = True
 
-        # move enemy bullets | check player hits
+        # move enemy bullets | check barrier hits | check player hits
         for ebullet in enemy_bullets[:]:
             ebullet[1] += enemy_bullet_speed
+
+            ebullet_rect = pygame.Rect(ebullet[0] - enemy_bullet_radius, ebullet[1] - enemy_bullet_radius, enemy_bullet_radius * 2, enemy_bullet_radius * 2)
+            hit_barrier = False
+            for block in barriers[:]:
+                if block.colliderect(ebullet_rect):
+                    barriers.remove(block)
+                    if ebullet in enemy_bullets:
+                        enemy_bullets.remove(ebullet)
+                    hit_barrier = True
+                    break
+            if hit_barrier:
+                continue
+
             pygame.draw.circle(screen, (255, 200, 50), (ebullet[0], ebullet[1]), enemy_bullet_radius)
 
             if ebullet[1] > SCREEN_HEIGHT:
